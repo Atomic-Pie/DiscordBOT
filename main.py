@@ -35,7 +35,7 @@ def getTriggers():
     return c.fetchall()
 
 
-def addTrigger(message):
+async def addTrigger(message):
     await message.channel.send("Enter Trigger")
     trigger = (await client.wait_for(
         'message',
