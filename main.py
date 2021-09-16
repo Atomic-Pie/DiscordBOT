@@ -39,6 +39,8 @@ async def deleteTrigger(message):
     elif sure.upper() == "YES":
         c.execute("Delete from triggers Where trigger='{}'".format(trigger))
         conn.commit()
+        await message.channel.send("The damage has been done")
+        await message.channel.send("oi @381520865390624773 they are fucking with me")
         return
     else:
         await message.channel.send(
