@@ -114,6 +114,14 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    try:
+        if msg.upper() == "!DELETE TRIGGER" or msg.upper() == "!DEL TRIGGER":
+            await deleteTrigger(message)
+
+    except asyncio.TimeoutError:
+        await message.channel.send("too slow bitch")
+        return
+
     # Add Trigger
     try:
         if msg.upper() == "!ADD TRIGGER":
