@@ -13,18 +13,41 @@ VOIDCHARACTERS = [" ", ",", ".", "-", "?", "*", "_", "'", '"']
 types = ["is", "in"]
 
 
+def delete_from_database(people):
+    savednames = []
+    savedPeople = check_database()
+    for person in savedPeople:
+        savednames.append(person.name)
+    for person in people:
+        if person.name in savednames:
+            cur.execute("Delete from people Where name='{}'".format(person.name))
+            con.commit()
+
+
+def check_database():
+    classList = []
+    cur.execute("Select * from people")
+    tempList = cur.fetchall()
+    for person in tempList:
+        classList.append(Person(person[0], person[1]))
+    for pi, person in enumerate(classList):
+        for oi, option in enumerate(options):
+            setattr(person, option, tempList[pi][oi + 2])
+    return classList
+
+
 def checkuser(user1, user2):
     return user1 == user2
 
 
-def searchIn(word, sentance):
+def searchIn(word, sentence):
     word = word.upper()
-    sentance = sentance.upper()
-    sentancelen = len(sentance)
+    sentence = sentence.upper()
+    sentencelen = len(sentence)
     wordlen = len(word)
-    x = sentance.find(word)
-    if sentance[x - 1] not in VOIDCHARACTERS:
-        if (x + wordlen + 1) < sentancelen and [x + wordlen + 1
+    x = sentence.find(word)
+    if sentence[x - 1] not in VOIDCHARACTERS:
+        if (x + wordlen + 1) < sentencelen and [x + wordlen + 1
                                                 ] in VOIDCHARACTERS:
             return True
     return False
@@ -35,8 +58,31 @@ def getTriggers():
     return c.fetchall()
 
 
-def addTrigger():
-    pass
+def addTrigger(message):
+    await message.channel.send("Enter Trigger")
+    trigger = (await client.wait_for(
+        'message',
+        check=lambda m: m.author == message.author,
+        timeout=60)).content
+    await message.channel.send("Enter Result")
+    result = (await client.wait_for(
+        'message',
+        check=lambda m: m.author == message.author,
+        timeout=60)).content
+    await message.channel.send("Enter Type(in/is)")
+    type_ = (await client.wait_for(
+        'message',
+        check=lambda m: m.author == message.author,
+        timeout=60)).content
+    if type_.lower() not in types:
+        await message.channel.send(
+            "jesus christ learn to follow basic instructions")
+        return
+    else:
+        statement = "INSERT INTO triggers VALUES('" + trigger + "', '" + result + "', '" + type_ + "', '" + message.author.name + "')"
+        c.execute(statement)
+        conn.commit()
+        return
 
 
 test = c.fetchall()
@@ -66,31 +112,7 @@ async def on_message(message):
 
     try:
         if msg.upper() == "!ADD TRIGGER":
-            await message.channel.send("Enter Trigger")
-            trigger = (await client.wait_for(
-                'message',
-                check=lambda m: m.author == message.author,
-                timeout=60)).content
-            await message.channel.send("Enter Result")
-            result = (await client.wait_for(
-                'message',
-                check=lambda m: m.author == message.author,
-                timeout=60)).content
-            await message.channel.send("Enter Type(in/is)")
-            type_ = (await client.wait_for(
-                'message',
-                check=lambda m: m.author == message.author,
-                timeout=60)).content
-            if type_.lower() not in types:
-                await message.channel.send(
-                    "jesus christ learn to follow basic instructions")
-                return
-            else:
-
-                statement = "INSERT INTO triggers VALUES('" + trigger + "', '" + result + "', '" + type_ + "', '" + message.author.name + "')"
-                c.execute(statement)
-                conn.commit()
-                return
+            addTrigger(message)
 
     except asyncio.TimeoutError:
         await message.channel.send("too slow bitch")
