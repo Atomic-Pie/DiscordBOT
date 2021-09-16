@@ -13,6 +13,40 @@ VOIDCHARACTERS = [" ", ",", ".", "-", "?", "*", "_", "'", '"']
 types = ["is", "in"]
 
 
+async def deleteTrigger(message):
+    saved = False
+    savedTriggers = getTriggers()
+    await message.channel.send("Enter Trigger")
+    trigger = (await client.wait_for(
+        'message',
+        check=lambda m: m.author == message.author,
+        timeout=60)).content
+    for savedTrigger in savedTriggers:
+        if savedTrigger[0].upper() == trigger.upper():
+            saved = True
+    if not saved:
+        await message.channel.send("Never heard of it")
+        return
+    await message.channel.send("Are you Sure?")
+    sure = (await client.wait_for(
+        'message',
+        check=lambda m: m.author == message.author,
+        timeout=60)).content
+    if sure.upper() == "NO":
+        await message.channel.send(
+            "Stop wasting my time")
+        return
+    elif sure.upper() == "YES":
+        c.execute("Delete from triggers Where trigger='{}'".format(trigger))
+        conn.commit()
+        return
+    else:
+        await message.channel.send(
+            "do you have brain damage?")
+        return
+
+
+
 def checkuser(user1, user2):
     return user1 == user2
 
@@ -59,6 +93,7 @@ async def addTrigger(message):
         statement = "INSERT INTO triggers VALUES('" + trigger + "', '" + result + "', '" + type_ + "', '" + message.author.name + "')"
         c.execute(statement)
         conn.commit()
+        await message.channel.send("K")
         return
 
 
@@ -88,9 +123,8 @@ async def on_message(message):
         await message.channel.send("too slow bitch")
         return
 
-
+    # Trigger Triggers
     for trigger in triggers:
-        print(triggers)
         if trigger[0].upper() in msg.upper():
             if trigger[2] == "is" and not searchIn(trigger[0], msg):
                 await message.channel.send(trigger[1])
