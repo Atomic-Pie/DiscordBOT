@@ -62,15 +62,6 @@ async def addTrigger(message):
         return
 
 
-test = c.fetchall()
-if len(test) < 0:
-    c.execute("""CREATE TABLE triggers (
-                trigger text,
-                answer text,
-                type text,
-                author text
-                )""")
-
 client = discord.Client()
 
 
@@ -84,18 +75,22 @@ async def on_message(message):
     msg = message.content
     triggers = getTriggers()
 
+    # Don't react to yourself you idiot
     if message.author == client.user:
         return
 
+    # Add Trigger
     try:
         if msg.upper() == "!ADD TRIGGER":
-            addTrigger(message)
+            await addTrigger(message)
 
     except asyncio.TimeoutError:
         await message.channel.send("too slow bitch")
         return
 
+
     for trigger in triggers:
+        print(triggers)
         if trigger[0].upper() in msg.upper():
             if trigger[2] == "is" and not searchIn(trigger[0], msg):
                 await message.channel.send(trigger[1])
